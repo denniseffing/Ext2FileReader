@@ -36,6 +36,9 @@
     <ClInclude Include="GroupDescriptorTable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="InodeTable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Superblock.cpp">
@@ -60,6 +63,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="GroupDescriptorTable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="InodeTable.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

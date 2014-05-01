@@ -56,7 +56,14 @@ struct ext2_inode {
 class Inode
 {
 public:
-	Inode();
+	Inode(char* dump, int offset);
 	~Inode();
+
+	ext2_inode* get_struct() { return inode_struct; }
+
+private:
+	ext2_inode* inode_struct;
+
+	void create_inode(char* dump, int offset);
 };
 

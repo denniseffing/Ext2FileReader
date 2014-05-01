@@ -16,10 +16,9 @@ Superblock::~Superblock() {
 
 void Superblock::print_details() {
 
-	cout << endl;
 	cout << "Inodes: " << sb_struct->s_inodes_count << endl;
 	cout << "Blocks: " << sb_struct->s_blocks_count << endl;
-	cout << "Log Blocksize: " << sb_struct->s_log_block_size << endl;
+	cout << "Log Blocksize: " << sb_struct->s_log_block_size << endl << endl << endl;
 }
 
 int Superblock::findSB(char* dump, unsigned long dump_size, int offset) {
@@ -36,7 +35,9 @@ int Superblock::findSB(char* dump, unsigned long dump_size, int offset) {
 		if (sb_struct->s_magic == MAGIC_NUMBER) {
 			sb_found = 1;
 
-			cout << "Superblock found at Offset: " << offset + i << endl;
+			s_offset = offset + i;
+
+			cout << "Superblock found at offset: " << s_offset << endl << endl;
 		}
 	}
 
@@ -60,7 +61,9 @@ int Superblock::findSB_with_addition(char* dump, unsigned long dump_size, int of
 		if (sb_struct->s_magic == MAGIC_NUMBER) {
 			sb_found = 1;
 
-			cout << "Superblock found at Offset: " << offset + i << endl;
+			s_offset = offset + i;
+
+			cout << "Superblock found at Offset: " << s_offset << endl << endl;
 		}
 	}
 

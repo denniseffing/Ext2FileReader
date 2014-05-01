@@ -17,6 +17,7 @@
     <ClInclude Include="GroupDescriptor.h" />
     <ClInclude Include="GroupDescriptorTable.h" />
     <ClInclude Include="Inode.h" />
+    <ClInclude Include="InodeTable.h" />
     <ClInclude Include="Superblock.h" />
   </ItemGroup>
   <ItemGroup>
@@ -26,6 +27,7 @@
     <ClCompile Include="GroupDescriptor.cpp" />
     <ClCompile Include="GroupDescriptorTable.cpp" />
     <ClCompile Include="Inode.cpp" />
+    <ClCompile Include="InodeTable.cpp" />
     <ClCompile Include="MainCode.cpp" />
     <ClCompile Include="Superblock.cpp" />
   </ItemGroup>

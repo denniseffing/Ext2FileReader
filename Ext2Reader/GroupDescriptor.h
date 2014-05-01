@@ -1,5 +1,5 @@
 #pragma once
-#include "Ext2.h"
+
 
 using namespace std;
 
@@ -20,6 +20,8 @@ class GroupDescriptor
 public:
 	GroupDescriptor(char* dump, int offset);
 	~GroupDescriptor();
+
+	ext2_group_desc* get_struct() { return gd_struct; }
 
 private:
 
