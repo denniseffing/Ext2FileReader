@@ -12,10 +12,9 @@ int saveDump(const char* path, char** dest) {
 
 	ifstream file(path, std::ifstream::binary);
 
-	if (!file)      
-	{
+	if (!file) {
 		cerr << "Kann Datei: " << path << " nicht lesen oder finden" << endl;
-		return 0;                     
+		return 0;
 	}
 
 	file.seekg(0, file.end);
@@ -28,7 +27,133 @@ int saveDump(const char* path, char** dest) {
 
 	file.read(*dest, size);
 
+	file.close();
+
 	return size;
+}
+
+int saveDumpToFile(const char* path, char* src, int length) {
+
+	ofstream file(path, std::ofstream::binary);
+
+	file.write(path, length);
+
+	file.close();
+
+	return 1;
+}
+
+int save_inode_to_file(char* dump, const char* path, Inode* p_inode, int blocksize) {
+
+	ext2_inode* i_struct = p_inode->get_struct();
+
+	ofstream* outstream = new ofstream(path, std::ofstream::binary);
+
+	// 12 direct blocks
+	for (int i = 0; i < 12; i++) {
+
+		if (i_struct->i_block[i] != 0)
+			outstream->write(&dump[i_struct->i_block[i] * blocksize], blocksize);
+	}
+
+	// indirect block
+	if (i_struct->i_block[12] != 0) {
+
+		for (int i = 0; i < 256; i++) {
+
+			unsigned long current = ((unsigned long*)&dump[i_struct->i_block[12] * blocksize])[i];
+
+			if (current != 0)
+				outstream->write(&dump[current * blocksize], blocksize);
+		}
+	}
+
+	// double indirect block
+	if (i_struct->i_block[13] != 0) {
+
+		for (int i = 0; i < 256; i++) {
+
+			unsigned long current_indirect = ((unsigned long*)&dump[i_struct->i_block[13] * blocksize])[i];
+
+			if (current_indirect != 0) {
+
+				for (int j = 0; j < 256; j++) {
+
+					unsigned long current = ((unsigned long*)&dump[current_indirect * blocksize])[j];
+
+					if (current != 0)
+						outstream->write(&dump[current*blocksize], blocksize);
+				}
+			}
+		}
+	}
+
+	// triple indirect block
+	if (i_struct->i_block[14] != 0) {
+
+		for (int i = 0; i < 256; i++) {
+
+			unsigned long current_double_indirect = ((unsigned long*)&dump[i_struct->i_block[14] * blocksize])[i];
+
+			if (current_double_indirect != 0) {
+
+				for (int j = 0; j < 256; j++) {
+
+					unsigned long current_indirect = ((unsigned long*)&dump[current_double_indirect * blocksize])[j];
+
+					if (current_indirect != 0) {
+
+						for (int k = 0; k < 256; k++) {
+
+							unsigned long current = ((unsigned long*)&dump[current_indirect * blocksize])[k];
+
+							if (current != 0)
+								outstream->write(&dump[current*blocksize], blocksize);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// quadruple indirect block
+	if (i_struct->i_block[14] != 0) {
+
+		for (int i = 0; i < 256; i++) {
+
+			unsigned long current_triple_indirect = ((unsigned long*)&dump[i_struct->i_block[14] * blocksize])[i];
+
+			if (current_triple_indirect != 0) {
+
+				for (int j = 0; j < 256; j++) {
+
+					unsigned long current_double_indirect = ((unsigned long*)&dump[current_triple_indirect * blocksize])[j];
+
+					if (current_double_indirect != 0) {
+
+						for (int k = 0; k < 256; k++) {
+
+							unsigned long current_indirect = ((unsigned long*)&dump[current_double_indirect * blocksize])[k];
+
+							if (current_indirect != 0) {
+
+								for (int l = 0; l < 256; l++) {
+
+									unsigned long current = ((unsigned long*)&dump[current_indirect * blocksize])[l];
+
+									if (current != 0)
+
+										outstream->write(&dump[current*blocksize], blocksize);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return 1;
 }
 
 
@@ -58,8 +183,44 @@ void main() {
 
 	InodeTable* inode_table = new InodeTable(dump, sb, gd_table);
 
-	Inode* twelthInode = inode_table->get_array()[10];
+	Inode* nonres_inode = inode_table->get_array()[10];
 
+	save_inode_to_file(dump, "test.jpg", nonres_inode, 1024);
+
+
+	int* used_blocks = new int[sb->get_struct()->s_blocks_count]();
+
+	int* used_inodes = new int[sb->get_struct()->s_inodes_count]();
+
+	cout << endl << endl << endl;
+
+	// FIND USED BLOCKS
+	for (int i = 0; i < (sb->get_struct()->s_blocks_count); i++) {
+
+		int mod = 1 << (i % 8); 
+
+		if (block_bitmap[i / 8] & mod)
+			used_blocks[i] = 1;
+
+		/*if (i >= 0 && i < 300)
+			cout << "TEST " << i << ": " << used_blocks[i] << endl;*/
+	}
+
+	// FIND USED INODES
+	for (int i = 0; i < (sb->get_struct()->s_inodes_count); i++) {
+
+		int mod = 1 << (i % 8);
+
+		if (inode_bitmap[i / 8] & mod)
+			used_inodes[i] = 1;
+
+		if (used_inodes[i] == 1)
+			cout << "TEST " << i << ": " << used_inodes[i] << endl;
+	}
+
+
+
+	//	saveDumpToFile("test.txt", file2->data_array, 3585 * 1024);
 
 	free(dump);
 }
