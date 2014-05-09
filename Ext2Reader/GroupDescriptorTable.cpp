@@ -22,12 +22,15 @@ GroupDescriptorTable::GroupDescriptorTable(char* dump, Superblock* sb) {
 
 		int temp_blocksize = 1024 << sb->get_struct()->s_log_block_size;
 
-		gd_array[i] = new GroupDescriptor(dump, 1024 + sb->get_offset() + sizeof(ext2_group_desc)*i);
+		unsigned long current_gd_offset = (sb->get_blockID() + 1) * temp_blocksize + sizeof(ext2_group_desc)*i;
 
-		cout << i + 1 << ". Group Descriptor found at offset: " << 1024 + sb->get_offset() + sizeof(ext2_group_desc)*i << endl;
+		gd_array[i] = new GroupDescriptor(dump, current_gd_offset);
+
+		cout << i + 1 << ". Group Descriptor found at offset: " << current_gd_offset << endl;
 	}
 
 	cout << endl << "Group Descriptor Table was successfully rebuilt!" << endl << endl;
+	cout << "---------------------------------" << endl;
 }
 
 

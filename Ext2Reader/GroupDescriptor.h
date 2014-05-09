@@ -18,19 +18,19 @@ struct ext2_group_desc
 class GroupDescriptor
 {
 public:
-	GroupDescriptor(char* dump, int offset);
+	GroupDescriptor(char* dump, unsigned long offset);
 	~GroupDescriptor();
 
-	unsigned short get_offset() { return gd_offset; }
+	unsigned long get_offset() { return gd_offset; }
 
 	ext2_group_desc* get_struct() { return gd_struct; }
 
 private:
 
-	unsigned short gd_offset;
+	unsigned long gd_offset;
 
 	ext2_group_desc* gd_struct;
 	
-	void create_gd(char* dump, int offset);
+	void create_gd(char* dump, unsigned long offset);
 };
 

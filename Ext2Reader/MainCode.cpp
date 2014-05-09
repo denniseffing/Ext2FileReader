@@ -2,9 +2,74 @@
 #include "GroupDescriptorTable.h"
 #include "Inode.h"
 #include "InodeTable.h"
+#include "InodeCluster.h"
 #include "Superblock.h"
+#include "Directory.h"
+
+
+#include <direct.h>
+#include <string.h>
+
+#include "C:\Users\Dennis\SkyDrive\C++ Workspace\Betriebssysteme\C++\!ITI.h"
 
 using namespace std;
+
+void DisplayValue(char *Content, long Size) {
+	//cout<<hex;
+	long i = 0;
+	long j = 0;
+
+	for (; Size != i;) {
+		for (; Size != i; ++i) {
+			printf("%02X", (unsigned char)Content[i]);
+			if (15 == (i & 15)) {
+				++i;
+				break;
+				//cout<<endl;
+			}
+			if (3 == (i & 3)) {
+				cout << " ";
+			}
+		}
+		printf("%03s", " - |");
+		for (; Size != j; ++j) {
+			if (((Content[j] >= ' ') && (Content[j] <= '~')) ||
+				((Content[j] >= 128) && (Content[j] <= 255))) {
+				cout << Content[j];
+			}
+			else {
+				cout << (char)177;
+			}
+			if (15 == (j & 15)) {
+				++j;
+				break;
+			}
+			if (3 == (j & 3)) {
+				cout << " ";
+			}
+		}
+		cout << "|" << endl;
+	}
+}
+
+char* concat(char* string1, char* string2, char* string3) {
+
+	int length1 = strlen(string1);
+	int length2 = strlen(string2);
+	int length3 = strlen(string3);
+
+	char* ret = (char*)malloc(length1 + length2 + length3 + 1);
+
+	memcpy(ret, string1, length1);
+
+	memcpy(ret + length1, string2, length2);
+
+	memcpy(ret + length1 + length2, string3, length3);
+
+	ret[length1 + length2 + length3] = 0;
+
+	return ret;
+}
 
 int saveDump(const char* path, char** dest) {
 
@@ -41,6 +106,46 @@ int saveDumpToFile(const char* path, char* src, int length) {
 	file.close();
 
 	return 1;
+}
+
+void calc_used_blocks(Superblock* sb, char* block_bitmap, int* used_blocks) {
+
+	cout << "Calculating used blocks..";
+
+	for (int i = 0; i < (sb->get_struct()->s_blocks_count); i++) {
+
+		int mod = 1 << (i % 8);
+
+		if (block_bitmap[i / 8] & mod)
+			used_blocks[i] = 1;
+
+		/*if (i >= 0 && i < 300)
+		cout << "TEST " << i << ": " << used_blocks[i] << endl;*/
+	}
+
+	cout << " Done." << endl;
+}
+
+void calc_used_inodes(Superblock* sb, char* inode_bitmap, int* used_inodes) {
+
+	cout << "Calculating used inodes.. " /*<< endl*/;
+
+	/*cout << "Used Inodes" << endl;
+	cout << "-----------" << endl;*/
+
+	for (int i = 0; i < (sb->get_struct()->s_inodes_count); i++) {
+
+		int mod = 1 << (i % 8);
+
+		if (inode_bitmap[i / 8] & mod)
+			used_inodes[i] = 1;
+
+		// you can print used inodes here!
+		/*if (used_inodes[i] == 1)
+			cout << "ID " << i << ": " << used_inodes[i] << endl;*/
+	}
+
+	cout << "Done." << endl;
 }
 
 int save_inode_to_file(char* dump, const char* path, Inode* p_inode, int blocksize) {
@@ -116,46 +221,63 @@ int save_inode_to_file(char* dump, const char* path, Inode* p_inode, int blocksi
 		}
 	}
 
-	// quadruple indirect block
-	if (i_struct->i_block[14] != 0) {
-
-		for (int i = 0; i < 256; i++) {
-
-			unsigned long current_triple_indirect = ((unsigned long*)&dump[i_struct->i_block[14] * blocksize])[i];
-
-			if (current_triple_indirect != 0) {
-
-				for (int j = 0; j < 256; j++) {
-
-					unsigned long current_double_indirect = ((unsigned long*)&dump[current_triple_indirect * blocksize])[j];
-
-					if (current_double_indirect != 0) {
-
-						for (int k = 0; k < 256; k++) {
-
-							unsigned long current_indirect = ((unsigned long*)&dump[current_double_indirect * blocksize])[k];
-
-							if (current_indirect != 0) {
-
-								for (int l = 0; l < 256; l++) {
-
-									unsigned long current = ((unsigned long*)&dump[current_indirect * blocksize])[l];
-
-									if (current != 0)
-
-										outstream->write(&dump[current*blocksize], blocksize);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	outstream->close();
 
 	return 1;
 }
 
+List* make_dir_list(char* dump, Inode* p_inode) {
+
+	List* directories = new List;
+	Directory* current;
+
+	for (int i = 0; i < 12; i++) {
+
+		if (p_inode->get_struct()->i_block[i] != 0) {
+
+			for (int j = 0, k = 0, l = p_inode->get_struct()->i_size * p_inode->get_struct()->i_block[i]; j < p_inode->get_struct()->i_size; j += current->get_struct()->rec_len) {
+
+				current = new Directory(dump, l);
+
+				l += current->get_struct()->rec_len;
+				directories->Insert<Directory>(k, current);
+				k++;
+			}
+		}
+	}
+
+	return directories;
+}
+
+void create_directory(char* dump, Superblock* sb,  InodeCluster* inode_cluster, char* name, List* directories, int blocksize) {
+
+	mkdir(name);
+
+	Directory* dir_current;
+	Inode* i_current;
+
+	for (int i = 0; i < directories->GetSize(); i++) {
+
+		directories->Get<Directory>((iusy)i, &dir_current);
+
+		int inode_number = dir_current->get_struct()->inode;
+
+		int inode_blockgroup = (inode_number - 1) / sb->get_struct()->s_inodes_per_group;
+		int inode_localindex = (inode_number - 1) % sb->get_struct()->s_inodes_per_group;
+
+		i_current = inode_cluster->get(inode_blockgroup)->get_array()[inode_localindex];
+
+		if (dir_current->get_struct()->file_type == 1) {
+
+			save_inode_to_file(dump, concat(name, "/", (dir_current->get_struct()->name)), 
+				i_current, blocksize);
+		}
+		else if (dir_current->get_struct()->file_type == 2 && strcmp(dir_current->get_struct()->name, ".") && strcmp(dir_current->get_struct()->name, "..")) {
+
+			create_directory(dump, sb, inode_cluster, concat(name, "/", dir_current->get_struct()->name), make_dir_list(dump, i_current), blocksize);
+		}
+	}
+}
 
 void main() {
 
@@ -166,10 +288,12 @@ void main() {
 	char* dump;
 	unsigned long dump_size;
 
-	dump_size = saveDump("ext2fs1.raw", &dump);
+	dump_size = saveDump("ext2fs2.raw", &dump);
 
-	Superblock* sb = new Superblock(dump, dump_size, 0);
+	Superblock* sb = new Superblock(dump, dump_size, 0, 2);
 	GroupDescriptorTable* gd_table = new GroupDescriptorTable(dump, sb);
+
+	GroupDescriptor* test = gd_table->get_array()[2];
 
 	int temp_blocksize = 1024 << sb->get_struct()->s_log_block_size;
 
@@ -181,12 +305,7 @@ void main() {
 	char* inode_bitmap = (char*)&dump[temp_blocksize * (gd_table->get_array()[0]->get_struct()->bg_inode_bitmap)];
 	cout << " Done" << endl << endl;
 
-	InodeTable* inode_table = new InodeTable(dump, sb, gd_table);
-
-	Inode* nonres_inode = inode_table->get_array()[10];
-
-	save_inode_to_file(dump, "test.jpg", nonres_inode, 1024);
-
+	InodeCluster* inode_cluster = new InodeCluster(dump, sb, gd_table);
 
 	int* used_blocks = new int[sb->get_struct()->s_blocks_count]();
 
@@ -194,33 +313,16 @@ void main() {
 
 	cout << endl << endl << endl;
 
-	// FIND USED BLOCKS
-	for (int i = 0; i < (sb->get_struct()->s_blocks_count); i++) {
+	calc_used_blocks(sb, block_bitmap, used_blocks);
+	calc_used_inodes(sb, inode_bitmap, used_inodes);
 
-		int mod = 1 << (i % 8); 
+	cout << endl;
 
-		if (block_bitmap[i / 8] & mod)
-			used_blocks[i] = 1;
-
-		/*if (i >= 0 && i < 300)
-			cout << "TEST " << i << ": " << used_blocks[i] << endl;*/
-	}
-
-	// FIND USED INODES
-	for (int i = 0; i < (sb->get_struct()->s_inodes_count); i++) {
-
-		int mod = 1 << (i % 8);
-
-		if (inode_bitmap[i / 8] & mod)
-			used_inodes[i] = 1;
-
-		if (used_inodes[i] == 1)
-			cout << "TEST " << i << ": " << used_inodes[i] << endl;
-	}
-
-
-
-	//	saveDumpToFile("test.txt", file2->data_array, 3585 * 1024);
+	//creating root directory list
+	cout << "Creating root Directory.." << endl;
+	List* directories = make_dir_list(dump, inode_cluster->get(0)->get_array()[1]);
+	create_directory(dump, sb, inode_cluster, "root", directories, temp_blocksize);
+	cout << "Done." << endl << endl;
 
 	free(dump);
 }

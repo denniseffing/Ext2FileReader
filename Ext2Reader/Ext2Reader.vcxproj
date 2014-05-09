@@ -11,22 +11,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BlockGroup.h" />
     <ClInclude Include="Directory.h" />
     <ClInclude Include="Ext2.h" />
     <ClInclude Include="GroupDescriptor.h" />
     <ClInclude Include="GroupDescriptorTable.h" />
     <ClInclude Include="Inode.h" />
+    <ClInclude Include="InodeCluster.h" />
     <ClInclude Include="InodeTable.h" />
     <ClInclude Include="Superblock.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BlockGroup.cpp" />
     <ClCompile Include="Directory.cpp" />
     <ClCompile Include="Ext2.cpp" />
     <ClCompile Include="GroupDescriptor.cpp" />
     <ClCompile Include="GroupDescriptorTable.cpp" />
     <ClCompile Include="Inode.cpp" />
+    <ClCompile Include="InodeCluster.cpp" />
     <ClCompile Include="InodeTable.cpp" />
     <ClCompile Include="MainCode.cpp" />
     <ClCompile Include="Superblock.cpp" />

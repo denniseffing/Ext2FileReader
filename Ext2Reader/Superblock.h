@@ -80,19 +80,21 @@ class Superblock
 {
 public:
 
-	Superblock(char* dump, unsigned long dump_size, int offset = 0);
+	Superblock(char* dump, unsigned long dump_size, int offset);
 	Superblock(char* dump, unsigned long dump_size, int offset, int offset_addition);
 	~Superblock();
 
 	ext2_super_block* get_struct() { return sb_struct; }
 
-	unsigned short get_offset() { return s_offset; }
+	unsigned long get_offset() { return s_offset; }
+	unsigned int get_blockID() { return s_blockID; }
 
 private:
 
 	ext2_super_block* sb_struct;
 
-	unsigned short s_offset;
+	unsigned long s_offset;
+	unsigned int s_blockID;
 
 	void print_details();
 	int findSB(char* dump, unsigned long dump_size, int offset);

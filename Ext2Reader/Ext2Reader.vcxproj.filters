@@ -21,9 +21,6 @@
     <ClInclude Include="Inode.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="BlockGroup.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Directory.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -39,15 +36,15 @@
     <ClInclude Include="InodeTable.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="InodeCluster.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Superblock.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Inode.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="BlockGroup.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Directory.cpp">
@@ -66,6 +63,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="InodeTable.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="InodeCluster.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

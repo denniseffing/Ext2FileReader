@@ -7,9 +7,22 @@ Superblock::Superblock(char* dump, unsigned long dump_size, int offset) {
 	cout << "Searching for Superblock..." << endl;
 
 	findSB(dump, dump_size, offset);
+
+	s_blockID = s_offset / (1024 << get_struct()->s_log_block_size);
+
 	print_details();
 }
 
+Superblock::Superblock(char* dump, unsigned long dump_size, int offset, int offset_addition) {
+
+	cout << "Searching for Superblock..." << endl;
+
+	findSB_with_addition(dump, dump_size, offset, offset_addition);
+
+	s_blockID = s_offset / (1024 << get_struct()->s_log_block_size);
+
+	print_details();
+}
 
 Superblock::~Superblock() {
 }
@@ -53,7 +66,7 @@ int Superblock::findSB_with_addition(char* dump, unsigned long dump_size, int of
 
 	sb_struct = (ext2_super_block*)&dump[offset];
 
-	for (int i = 0; !(sb_struct->s_magic == MAGIC_NUMBER) && offset + i < dump_size; i += offset_addition) {
+	for (unsigned long i = 0; !(sb_struct->s_magic == MAGIC_NUMBER) && offset + i < dump_size; i += offset_addition) {
 
 		if (offset + i < dump_size)
 			sb_struct = (ext2_super_block*)&dump[offset + i];
@@ -64,6 +77,8 @@ int Superblock::findSB_with_addition(char* dump, unsigned long dump_size, int of
 			s_offset = offset + i;
 
 			cout << "Superblock found at Offset: " << s_offset << endl << endl;
+
+			cout << "DEBUG: " << i << endl;
 		}
 	}
 

@@ -11,7 +11,7 @@ class InodeTable {
 
 
 public:
-	InodeTable(char* dump, Superblock* sb, GroupDescriptorTable* gd_table);
+	InodeTable(char* dump, Superblock* sb, GroupDescriptor* gd);
 	~InodeTable();
 
 	unsigned long size() { return table_size; }

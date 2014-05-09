@@ -3,8 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <string.h>
-
 
 /*
 * Constants relative to the data blocks
